@@ -1,0 +1,21 @@
+{
+  "name": "service-middlewares",
+  "version": "1.0.0",
+  "description": "Authentication middleware for services.",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@git.hch.im:service-infrastructure/service-middlewares.git"
+  },
+  "author": "Hui Chen",
+  "license": "MIT",
+  "dependencies": {
+    "mocha": "~3.0.0",
+    "chai": "*",
+    "metricsclient": "git+ssh://git@git.hch.im:service-infrastructure/metricserviceclient.git",
+    "servicecommonutils": "git+ssh://git@git.hch.im:service-infrastructure/servicecommonutils.git"
+  }
+}
