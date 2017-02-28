@@ -1,15 +1,16 @@
 var commonUtils = require('servicecommonutils')
 
-var config;
-var redisClient;
+const auth_token_expire = 30 * 24 * 60 * 60;
 
 var auth_middleware = function (req, res, next) {
     var authToken = req.get('x-auth-token')
     if (authToken) {
-        redisClient.get(authToken, function (err, reply) {
+        this.redisClient.get(authToken, function (err, reply) {
             if (err) return next(err)
             if (reply) {
                 req.headers['userId'] = reply
+                // update the expiration time of this auth token
+                redisClient.expire(authToken, auth_token_expire)
                 next()
             } else {
                 res.json({
