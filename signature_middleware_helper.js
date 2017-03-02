@@ -40,9 +40,6 @@ module.exports = {
         var reqtime = new Date(reqTime)
 
         var diff = now.getTime() - reqtime.getTime()
-        console.log(now)
-        console.log(reqtime)
-        console.log(diff)
         if (diff >= 0 && diff <= REPLAY_PROTECT_TIME) {
             return true
         }

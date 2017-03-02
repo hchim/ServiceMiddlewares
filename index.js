@@ -93,7 +93,7 @@ module.exports = function (config) {
     var port = config.get('redis.port')
     this.redisClient = commonUtils.createRedisClient(host, port);
     this.appConfs = signatureMWHelper.appConfigs()
-    console.log(this.appConfs)
+
     this.auth_middleware = auth_middleware;
     this.signature_middleware = signature_middleware;
 
