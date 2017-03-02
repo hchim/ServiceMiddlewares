@@ -1,9 +1,16 @@
 var commonUtils = require('servicecommonutils')
+var signatureMWHelper = require('./signature_middleware_helper')
 
 const auth_token_expire = 30 * 24 * 60 * 60;
 
+/**
+ * Authenticate middleware.
+ * @param req
+ * @param res
+ * @param next
+ */
 var auth_middleware = function (req, res, next) {
-    var authToken = req.get('x-auth-token')
+    var authToken = req.headers['x-auth-token']
     if (authToken) {
         this.redisClient.get(authToken, function (err, reply) {
             if (err) return next(err)
@@ -28,6 +35,50 @@ var auth_middleware = function (req, res, next) {
 };
 
 /**
+ * This middleware checks the signature of the request.
+ * @param req
+ * @param res
+ * @param next
+ */
+var signature_middleware = function (req, res, next) {
+    var reqSignature = req.headers['x-auth-digest']
+    var reqTimeLabel = req.headers['x-auth-time']
+    var appName = req.headers['x-auth-app']
+
+    if (reqSignature && reqTimeLabel && appName) {
+        if (!signatureMWHelper.validRequestTime(reqTimeLabel)) {
+            return res.json({
+                message: "Request expired.",
+                errorCode: "INVALID_REQUEST"
+            })
+        }
+        if (!(appName in this.appConfs)) {
+            return res.json({
+                message: "Invalid app name.",
+                errorCode: "INVALID_REQUEST"
+            })
+        }
+
+        var key = this.appConfs[appName].key
+        var realSignature = signatureMWHelper.requestSignature(req, key)
+
+        if (realSignature !== reqSignature) {
+            return res.json({
+                message: "Invalid signature.",
+                errorCode: "INVALID_REQUEST"
+            })
+        }
+        //all security check passed
+        next()
+    } else { //request digest does not exist
+        return res.json({
+            message: "Request not signed correctly.",
+            errorCode: "INVALID_REQUEST"
+        })
+    }
+};
+
+/**
  * Exports a init function. It can be used as follows:
  *
  * var authMw = require('service-middlewares')(config);
@@ -41,7 +92,10 @@ module.exports = function (config) {
     var host = config.get('redis.host')
     var port = config.get('redis.port')
     this.redisClient = commonUtils.createRedisClient(host, port);
-
+    this.appConfs = signatureMWHelper.appConfigs()
+    console.log(this.appConfs)
     this.auth_middleware = auth_middleware;
+    this.signature_middleware = signature_middleware;
+
     return this;
 };
