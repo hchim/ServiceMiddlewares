@@ -74,7 +74,7 @@ var signature_middleware = function (req, res, next) {
             })
         }
         //all security check passed
-        sigHeper.decodeRequestBody(req)
+        commonUtils.decodeRequestBody(req)
         next()
     } else { //request digest does not exist
         return res.json({

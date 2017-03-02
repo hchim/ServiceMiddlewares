@@ -76,22 +76,5 @@ module.exports = {
             appConfigs[app]['key'] = app.packageName + app.magicWord + app.apkSHA256Signature + app.apiKeySignature
         }
         return appConfigs
-    },
-    /**
-     * Decode the payload of the request body
-     * @param req
-     */
-    decodeRequestBody: function (req) {
-        var method = req.method.toLocaleLowerCase()
-        if (method == 'put' || (method == 'post' && !req.is('multipart'))) {
-            if (req.body.payload) {
-                var buffer = new Buffer(req.body.payload, 'base64')
-                var payload = buffer.toString('utf-8');
-                var json = JSON.parse(payload);
-                if (json) {
-                    req.body = json;
-                }
-            }
-        }
     }
 }
