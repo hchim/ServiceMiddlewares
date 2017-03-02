@@ -41,6 +41,11 @@ var auth_middleware = function (req, res, next) {
  * @param next
  */
 var signature_middleware = function (req, res, next) {
+    //bypass internal service invoking
+    if (req.headers['is-internal-request'] === "YES") {
+        next()
+    }
+
     var reqSignature = req.headers['x-auth-digest']
     var reqTimeLabel = req.headers['x-auth-time']
     var appName = req.headers['x-auth-app']

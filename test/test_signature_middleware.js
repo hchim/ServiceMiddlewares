@@ -24,6 +24,17 @@ var mw = require('../index')(conf).signature_middleware
 
 describe('signature middleware', function () {
 
+    it('internal request', function (done) {
+        var req = {
+            headers: {
+                'is-internal-request': 'YES'
+            }
+        }
+        var json = mw(req, res, function () {
+            done()
+        })
+    })
+
     it('no x-auth-digest', function (done) {
         var req = {
             headers: {}
