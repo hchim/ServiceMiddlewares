@@ -1,5 +1,5 @@
 var commonUtils = require('servicecommonutils')
-var signatureMWHelper = require('./signature_middleware_helper')
+var sigHeper = require('./signature_middleware_helper')
 
 const auth_token_expire = 30 * 24 * 60 * 60;
 
@@ -51,7 +51,7 @@ var signature_middleware = function (req, res, next) {
     var appName = req.headers['x-auth-app']
 
     if (reqSignature && reqTimeLabel && appName) {
-        if (!signatureMWHelper.validRequestTime(reqTimeLabel)) {
+        if (!sigHeper.validRequestTime(reqTimeLabel)) {
             return res.json({
                 message: "Request expired.",
                 errorCode: "INVALID_REQUEST"
@@ -65,7 +65,7 @@ var signature_middleware = function (req, res, next) {
         }
 
         var key = this.appConfs[appName].key
-        var realSignature = signatureMWHelper.requestSignature(req, key)
+        var realSignature = sigHeper.requestSignature(req, key)
 
         if (realSignature !== reqSignature) {
             return res.json({
@@ -74,6 +74,7 @@ var signature_middleware = function (req, res, next) {
             })
         }
         //all security check passed
+        sigHeper.decodeRequestBody(req)
         next()
     } else { //request digest does not exist
         return res.json({
@@ -97,7 +98,7 @@ module.exports = function (config) {
     var host = config.get('redis.host')
     var port = config.get('redis.port')
     this.redisClient = commonUtils.createRedisClient(host, port);
-    this.appConfs = signatureMWHelper.appConfigs()
+    this.appConfs = sigHeper.appConfigs()
 
     this.auth_middleware = auth_middleware;
     this.signature_middleware = signature_middleware;

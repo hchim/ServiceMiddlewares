@@ -115,18 +115,42 @@ describe('signature middleware', function () {
         done()
     })
 
-    it('invalid signature', function (done) {
+    it('valid signature', function (done) {
+        var body = {
+            username: "username",
+            password: "password"
+        }
         var req = {
             method: 'POST',
             path: '/test',
             headers: {
-                'x-auth-digest': '11d188cc7de1f54a2764d5429d108cf0',
+                'x-auth-digest': '60b71edc59b734b8b37385f51b07e733',
                 'x-auth-time': new Date().toISOString(),
                 'x-auth-app': 'SleepAiden',
                 'x-auth-version': 'xxxxx'
             },
             body: {
-                payload: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                payload: new Buffer(JSON.stringify(body)).toString('base64')
+            },
+            is: function (type) {
+                return false
+            }
+        }
+        var json = mw(req, res, function () {
+            expect(body.username).to.equal(req.body.username)
+            done()
+        })
+    })
+
+    it('valid signature for get', function (done) {
+        var req = {
+            method: 'GET',
+            path: '/test',
+            headers: {
+                'x-auth-digest': '1d98d6ead3033b8b610f8ff4f31ede53',
+                'x-auth-time': new Date().toISOString(),
+                'x-auth-app': 'SleepAiden',
+                'x-auth-version': 'xxxxx'
             },
             is: function (type) {
                 return false
