@@ -73,7 +73,8 @@ module.exports = {
     appConfigs: function () {
         for (var app in appConfigs) {
             //key = packageName + magicWord + apkSHA256Signature + apiKeySignature
-            appConfigs[app]['key'] = app.packageName + app.magicWord + app.apkSHA256Signature + app.apiKeySignature
+            appConfigs[app]['key'] = appConfigs[app].packageName + appConfigs[app].magicWord
+                + appConfigs[app].apkSHA256Signature + appConfigs[app].apiKeySignature
         }
         return appConfigs
     }
