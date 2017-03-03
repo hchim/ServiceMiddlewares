@@ -11,7 +11,7 @@ const REPLAY_PROTECT_TIME = 300000
 var getXHeaders = function (req) {
     var headers = []
     for(var item in req.headers) {
-        if (item.startsWith('x-auth-')) {
+        if (item.startsWith('x-auth-') && item != 'x-auth-digest') {
             headers.push(item)
         }
     }
