@@ -1,4 +1,4 @@
-var commonUtils = require('servicecommonutils')
+var utils = require('servicecommonutils')
 var sigHeper = require('./signature_middleware_helper')
 
 const auth_token_expire = 30 * 24 * 60 * 60;
@@ -20,17 +20,17 @@ var auth_middleware = function (req, res, next) {
                 redisClient.expire(authToken, auth_token_expire)
                 next()
             } else {
-                res.json({
+                res.json(utils.encodeResponseBody(req, {
                     message: 'wrong auth token',
                     "errorCode": "AUTH_FAILURE"
-                });
+                }));
             }
         })
     } else {
-        res.json({
+        res.json(utils.encodeResponseBody(req, {
             message: 'Auth token not exist in request',
             "errorCode": "AUTH_FAILURE"
-        });
+        }));
     }
 };
 
@@ -52,35 +52,35 @@ var signature_middleware = function (req, res, next) {
 
     if (reqSignature && reqTimeLabel && appName) {
         if (!sigHeper.validRequestTime(reqTimeLabel)) {
-            return res.json({
+            return res.json(utils.encodeResponseBody(req, {
                 message: "Request expired.",
                 errorCode: "INVALID_REQUEST"
-            })
+            }))
         }
         if (!(appName in this.appConfs)) {
-            return res.json({
+            return res.json(utils.encodeResponseBody(req, {
                 message: "Invalid app name.",
                 errorCode: "INVALID_REQUEST"
-            })
+            }))
         }
 
         var key = this.appConfs[appName].key
         var realSignature = sigHeper.requestSignature(req, key)
 
         if (realSignature !== reqSignature) {
-            return res.json({
+            return res.json(utils.encodeResponseBody(req, {
                 message: "Invalid signature.",
                 errorCode: "INVALID_REQUEST"
-            })
+            }))
         }
         //all security check passed
-        commonUtils.decodeRequestBody(req)
+        utils.decodeRequestBody(req)
         next()
     } else { //request digest does not exist
-        return res.json({
+        return res.json(utils.encodeResponseBody(req, {
             message: "Request not signed correctly.",
             errorCode: "INVALID_REQUEST"
-        })
+        }))
     }
 };
 
@@ -97,7 +97,7 @@ module.exports = function (config) {
     this.config = config;
     var host = config.get('redis.host')
     var port = config.get('redis.port')
-    this.redisClient = commonUtils.createRedisClient(host, port);
+    this.redisClient = utils.createRedisClient(host, port);
     this.appConfs = sigHeper.appConfigs()
 
     this.auth_middleware = auth_middleware;
