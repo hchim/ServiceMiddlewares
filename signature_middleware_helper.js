@@ -58,8 +58,9 @@ module.exports = {
         }
 
         var xHeaders = getXHeaders(req)
-        for (var item in xHeaders) {
-            str += req.headers[item]
+        for (var i in xHeaders) {
+            str += xHeaders[i]
+            str += req.headers[xHeaders[i]]
         }
 
         var hash = sha256(str)
