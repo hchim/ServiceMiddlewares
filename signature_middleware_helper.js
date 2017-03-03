@@ -1,8 +1,8 @@
 var crypto = require('crypto');
 var appConfigs = require('./app_configs')
 
-//one minute
-const REPLAY_PROTECT_TIME = 60000
+//five minute
+const REPLAY_PROTECT_TIME = 300000
 
 /**
  * get all the customized headers and sort
@@ -39,8 +39,8 @@ module.exports = {
         var now = new Date();
         var reqtime = new Date(reqTime)
 
-        var diff = now.getTime() - reqtime.getTime()
-        if (diff >= 0 && diff <= REPLAY_PROTECT_TIME) {
+        var diff = Math.abs(now.getTime() - reqtime.getTime())
+        if (diff <= REPLAY_PROTECT_TIME) {
             return true
         }
 
