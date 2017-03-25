@@ -10,28 +10,30 @@ const auth_token_expire = 30 * 24 * 60 * 60;
  * @param next
  */
 var auth_middleware = function (req, res, next) {
+    var self = this;
     var authToken = req.headers['x-auth-token']
     if (authToken) {
-        this.redisClient.get(authToken, function (err, reply) {
+        //TODO callback is not invoked if token is not in redis
+        self.redisClient.get(authToken, function (err, reply) {
             if (err) return next(err)
             if (reply) {
                 req.headers['userId'] = reply
                 // update the expiration time of this auth token
-                redisClient.expire(authToken, auth_token_expire)
+                self.redisClient.expire(authToken, auth_token_expire)
                 next()
             } else {
-                this.metricClient.errorMetric(this.serviceName + ':Auth:Error',
+                self.metricClient.errorMetric(self.serviceName + ':Auth:Error',
                     {path: req.path, message: 'Wrong auth token'}, null)
-                res.json(utils.encodeResponseBody(req, {
-                    message: 'wrong auth token',
+                return res.json(utils.encodeResponseBody(req, {
+                    message: 'Wrong auth token',
                     "errorCode": "AUTH_FAILURE"
                 }));
             }
         })
     } else {
-        this.metricClient.errorMetric(this.serviceName + ':Auth:Error',
+        self.metricClient.errorMetric(self.serviceName + ':Auth:Error',
             {path: req.path, message: 'Request has no auth token'}, null)
-        res.json(utils.encodeResponseBody(req, {
+        return res.json(utils.encodeResponseBody(req, {
             message: 'Auth token not exist in request',
             "errorCode": "AUTH_FAILURE"
         }));
@@ -45,6 +47,7 @@ var auth_middleware = function (req, res, next) {
  * @param next
  */
 var signature_middleware = function (req, res, next) {
+    var self = this;
     //bypass internal service invoking
     if (req.headers['is-internal-request'] === "YES") {
         next()
@@ -56,7 +59,7 @@ var signature_middleware = function (req, res, next) {
 
     if (reqSignature && reqTimeLabel && appName) {
         if (!sigHeper.validRequestTime(reqTimeLabel)) {
-            this.metricClient.errorMetric(this.serviceName + ':Auth:Error',
+            self.metricClient.errorMetric(self.serviceName + ':Auth:Error',
                 {path: req.path, message: 'Request expired.'}, null)
             return res.json(utils.encodeResponseBody(req, {
                 message: "Request expired.",
@@ -64,7 +67,7 @@ var signature_middleware = function (req, res, next) {
             }))
         }
         if (!(appName in this.appConfs)) {
-            this.metricClient.errorMetric(this.serviceName + ':Auth:Error',
+            self.metricClient.errorMetric(self.serviceName + ':Auth:Error',
                 {path: req.path, message: 'Invalid app name'}, null)
             return res.json(utils.encodeResponseBody(req, {
                 message: "Invalid app name.",
@@ -72,11 +75,11 @@ var signature_middleware = function (req, res, next) {
             }))
         }
 
-        var key = this.appConfs[appName].key
+        var key = self.appConfs[appName].key
         var realSignature = sigHeper.requestSignature(req, key)
 
         if (realSignature !== reqSignature) {
-            this.metricClient.errorMetric(this.serviceName + ':Signature:Error',
+            self.metricClient.errorMetric(self.serviceName + ':Signature:Error',
                 {path: req.path, message: 'Invalid signature'}, null)
             return res.json(utils.encodeResponseBody(req, {
                 message: "Invalid signature.",
@@ -87,8 +90,8 @@ var signature_middleware = function (req, res, next) {
         utils.decodeRequestBody(req)
         next()
     } else { //request digest does not exist
-        this.metricClient.errorMetric(
-            this.serviceName + ':Signature:Error',
+        self.metricClient.errorMetric(
+            self.serviceName + ':Signature:Error',
             {path: req.path, message: 'Request not signed correctly.'},
             null)
         return res.json(utils.encodeResponseBody(req, {
