@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@git.sleepaiden.com:service-infrastructure/servicemiddlewares.git"
+    "url": "git@github.com:hchim/ServiceMiddlewares.git"
   },
   "author": "Hui Chen",
   "license": "MIT",
   "dependencies": {
     "mocha": "~3.0.0",
     "chai": "*",
-    "metricsclient": "git+ssh://git@git.sleepaiden.com:service-infrastructure/metricserviceclient.git",
-    "servicecommonutils": "git+ssh://git@git.sleepaiden.com:service-infrastructure/servicecommonutils.git"
+    "metricsclient": "git@github.com:hchim/MetricServiceClient.git",
+    "servicecommonutils": "git@github.com:hchim/ServiceCommonUtils.git"
   }
 }
