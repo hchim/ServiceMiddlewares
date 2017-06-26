@@ -58,6 +58,8 @@ var signature_middleware = function (req, res, next) {
     var appName = req.headers['x-auth-app']
 
     if (reqSignature && reqTimeLabel && appName) {
+/*
+    // disable timestamp check, there is not a strong requirement for this now.
         if (!sigHeper.validRequestTime(reqTimeLabel)) {
             self.metricClient.errorMetric(self.serviceName + ':Auth:Error',
                 {path: req.path, message: 'Request expired.'}, null)
@@ -66,6 +68,7 @@ var signature_middleware = function (req, res, next) {
                 errorCode: "INVALID_REQUEST"
             }))
         }
+*/
         if (!(appName in this.appConfs)) {
             self.metricClient.errorMetric(self.serviceName + ':Auth:Error',
                 {path: req.path, message: 'Invalid app name'}, null)
