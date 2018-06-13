@@ -1,90 +1,91 @@
-import {SignatureMiddlewareCreator} from '../index';
-import {appConfigs, requestSignature} from '../SignatureMiddlewareHelper';
-import MetricServiceClient from 'metricsclient';
+'use strict';
 
-const assert = require('assert');
-const expect = require('Chai').expect;
-const conf = {
-    get: function (key) {
-        if (key === 'redis.host')
-            return '127.0.0.1';
-        else if (key === 'redis.port')
-            return 6379;
-        else if (key === 'endpoint.metricservice')
-            return 'http://localhost:3112';
-        else if (key === 'service.name')
-            return 'Middleware';
-        else
-            return null
+var _index = require('../index');
+
+var _SignatureMiddlewareHelper = require('../SignatureMiddlewareHelper');
+
+var _metricsclient = require('metricsclient');
+
+var _metricsclient2 = _interopRequireDefault(_metricsclient);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var assert = require('assert');
+var expect = require('Chai').expect;
+var conf = {
+    get: function get(key) {
+        if (key === 'redis.host') return '127.0.0.1';else if (key === 'redis.port') return 6379;else if (key === 'endpoint.metricservice') return 'http://localhost:3112';else if (key === 'service.name') return 'Middleware';else return null;
     }
 };
-const metricClient = new MetricServiceClient(conf);
-const res = {
-    json: function (obj) {
-        return obj
+var metricClient = new _metricsclient2.default(conf);
+var res = {
+    json: function json(obj) {
+        return obj;
     }
 };
 
-const next = function () {return 0};
+var next = function next() {
+    return 0;
+};
 
-const mw = SignatureMiddlewareCreator.create(metricClient, conf);
+var mw = _index.SignatureMiddlewareCreator.create(metricClient, conf);
 
 function decodeBase64(json) {
-    const b = new Buffer(json.payload, 'base64');
-    const s = b.toString('utf-8');
+    var b = new Buffer(json.payload, 'base64');
+    var s = b.toString('utf-8');
     return JSON.parse(s);
 }
 
 describe('signature middleware', function () {
 
     it('internal request', function (done) {
-        const req = {
+        var req = {
             path: '/test',
             headers: {
                 'is-internal-request': 'YES'
             }
         };
         mw(req, res, function () {
-            done()
-        })
+            done();
+        });
     });
 
     it('no x-auth-digest', function (done) {
-        const req = {
+        var req = {
             path: '/test',
             headers: {}
         };
-        let jsonObj = mw(req, res, next);
+        var jsonObj = mw(req, res, next);
         jsonObj = decodeBase64(jsonObj);
         expect(jsonObj.message).to.equal('Request not signed correctly.');
-        done()
+        done();
     });
 
     it('no x-auth-time', function (done) {
-        const req = {
+        var req = {
             path: '/test',
             headers: {
                 'x-auth-digest': 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
             }
         };
-        let json = mw(req, res, next);
+        var json = mw(req, res, next);
         json = decodeBase64(json);
         expect(json.message).to.equal('Request not signed correctly.');
-        done()
+        done();
     });
 
     it('no x-auth-app', function (done) {
-        const req = {
+        var req = {
             path: '/test',
             headers: {
                 'x-auth-digest': 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
                 'x-auth-time': 'xxxxxxxxx'
             }
         };
-        let json = mw(req, res, next);
+        var json = mw(req, res, next);
         json = decodeBase64(json);
         expect(json.message).to.equal('Request not signed correctly.');
-        done()
+        done();
     });
 
     // it('invalid request time', function (done) {
@@ -103,7 +104,7 @@ describe('signature middleware', function () {
     // });
 
     it('invalid request time', function (done) {
-        const req = {
+        var req = {
             path: '/test',
             headers: {
                 'x-auth-digest': 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
@@ -111,14 +112,14 @@ describe('signature middleware', function () {
                 'x-auth-app': 'xxxxx'
             }
         };
-        let json = mw(req, res, next);
+        var json = mw(req, res, next);
         json = decodeBase64(json);
         expect(json.message).to.equal('Invalid app name.');
-        done()
+        done();
     });
 
     it('invalid signature', function (done) {
-        const req = {
+        var req = {
             method: 'POST',
             path: '/test',
             headers: {
@@ -130,22 +131,22 @@ describe('signature middleware', function () {
             body: {
                 payload: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
             },
-            is: function (type) {
-                return false
+            is: function is(type) {
+                return false;
             }
         };
-        let json = mw(req, res, next);
+        var json = mw(req, res, next);
         json = decodeBase64(json);
         expect(json.message).to.equal('Invalid signature.');
-        done()
+        done();
     });
 
     it('valid signature', function (done) {
-        const body = {
+        var body = {
             username: "username",
             password: "password"
         };
-        const req = {
+        var req = {
             method: 'POST',
             path: '/test',
             headers: {
@@ -157,20 +158,20 @@ describe('signature middleware', function () {
             body: {
                 payload: new Buffer(JSON.stringify(body)).toString('base64')
             },
-            is: function (type) {
-                return false
+            is: function is(type) {
+                return false;
             }
         };
-        const appConfs = appConfigs();
-        req.headers['x-auth-digest'] = requestSignature(req, appConfs['SleepAiden'].key);
+        var appConfs = (0, _SignatureMiddlewareHelper.appConfigs)();
+        req.headers['x-auth-digest'] = (0, _SignatureMiddlewareHelper.requestSignature)(req, appConfs['SleepAiden'].key);
         mw(req, res, function () {
             expect(body.username).to.equal(req.body.username);
-            done()
-        })
+            done();
+        });
     });
 
     it('valid signature for get', function (done) {
-        const req = {
+        var req = {
             method: 'GET',
             path: '/test',
             headers: {
@@ -179,14 +180,14 @@ describe('signature middleware', function () {
                 'x-auth-app': 'SleepAiden',
                 'x-auth-version': 'xxxxx'
             },
-            is: function (type) {
-                return false
+            is: function is(type) {
+                return false;
             }
         };
-        const appConfs = appConfigs();
-        req.headers['x-auth-digest'] = requestSignature(req, appConfs['SleepAiden'].key);
+        var appConfs = (0, _SignatureMiddlewareHelper.appConfigs)();
+        req.headers['x-auth-digest'] = (0, _SignatureMiddlewareHelper.requestSignature)(req, appConfs['SleepAiden'].key);
         mw(req, res, function () {
-            done()
-        })
-    })
+            done();
+        });
+    });
 });
